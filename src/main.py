@@ -73,5 +73,5 @@ if __name__ == '__main__':
   chanName = chooseChannel(args.chan)
 
   #make a connection to the channel
-  connection = Listener.TwitchListener(chanName)
-  connection.run()
+  channel = Listener.TwitchListener(chanName)
+  channel.run()

@@ -6,23 +6,24 @@ import sys
 import datetime
 import collections
 import json
+from requests import get
 
 #filters a message returning a use code to be read by the processing loop
 # 0 = do not process
 # 1 = process
 def shouldProcessMessage(user, msg, blocked, nick):
 
-    #incomplete message, don't print
-    if (len(user) + len(msg)) < 2:
-        return 0
-    #USER IS ON THE BLOCKED LIST GET OUTTA HERE
-    if user in blocked:
-        return 0
-    #filter out bullshit irc flags
-    if nick in user:
-        return 0
+  #incomplete message, don't print
+  if (len(user) + len(msg)) < 2:
+    return 0
+  #USER IS ON THE BLOCKED LIST GET OUTTA HERE
+  if user in blocked:
+    return 0
+  #filter out bullshit irc flags
+  if nick in user:
+    return 0
 
-    return 1
+  return 1
 
 class TwitchListener:
 
@@ -35,8 +36,8 @@ class TwitchListener:
     self.channel = self.channel_info[channelname]
     self.blocked = self.channel['blocked']
 
-  def shutdown(self):
-    self.irc.close()
+  def getCurrentViewers(self):
+    return get('https://api.twitch.tv/kraken/streams/%s' % self.channel['name'],headers={"Client-ID":settings['clientid']}).json()['stream']['viewers']
 
   #connects to a specified channel on the specified server using the pass/nick combo
   #info is contained in settings file
@@ -79,34 +80,41 @@ class TwitchListener:
     self.connect()
 
     while True:
-        # get username/msg for blocked user checking
-        try:            
-            message = self.getmsg()
-        except OSError and KeyboardInterrupt:
-            return
+      # get username/msg for blocked user checking
+      try:            
+        message = self.getmsg()
+      except OSError and KeyboardInterrupt:
+        return
 
-        #u can pass
-        if message and message.isIncluded:
-            #pray to jeebus that there aren't any unreadable things in the message (figure out how to fix this damn you)
-            try:
-        
-                ## HERE BE WORK ##	
-                #somevars = process msg
-                #what to be returned? <<msg object>, <data vector>>
-                # <msg object> = <emoji ref ordereddict, str with ref index chars, plaintext msg (justwords)>
-                # <data vector> = <vader score, keyword(s?), ...>
-                ##################
-
-                print("{} -- {}: {}".format(message.timestamp, message.user, message.msg))
+      #u can pass
+      if message and message.isIncluded:
+        #pray to jeebus that there aren't any unreadable things in the message (figure out how to fix this damn you)
+        try:
     
-            #na boo
-            except UnicodeDecodeError:
-                print("Message contained shit we can't read")
-                    
+          ## HERE BE WORK ##	
+          #somevars = process msg
+          #what to be returned? <<msg object>, <data vector>>
+          # <msg object> = <emoji ref ordereddict, str with ref index chars, plaintext msg (justwords)>
+          # <data vector> = <vader score, keyword(s?), ...>
+          ##################
+
+          print("{} -- {}: {}".format(message.timestamp, message.user, message.msg))
+
+        #na boo
+        except UnicodeDecodeError:
+          print("Message contained shit we can't read")
+                  
 
 
-        
+if __name__ == "__main__":
+  a = get("https://api.betterttv.net/emotes").json()['emotes']
+  for line in a:
+    print(line['regex'])
 
-    
+
+
+      
+
+  
 
 

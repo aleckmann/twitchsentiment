@@ -82,5 +82,5 @@ class TwitchMsg:
     self.truelen = len(self.msg_with_emojis)
 
 if __name__ == '__main__':
-    testMsg = TwitchMsg('testuser','KappaPride I LOVE YOU KappaPride')
-    print(testMsg.msg_with_emojis)
+  testMsg = TwitchMsg('testuser','KappaPride I LOVE YOU KappaPride')
+  print(testMsg.msg_with_emojis)
