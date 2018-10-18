@@ -1,0 +1,6 @@
+*.pyc
+*.json
+*.md
+*.txt
+appsettings.py
+.pylintrc
