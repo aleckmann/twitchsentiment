@@ -1,5 +1,5 @@
 #!/usr/bin/python
-from appsettings import settings
+from data.appsettings import settings
 import twitch_msg as TwitchMsg
 import socket
 import sys
@@ -32,7 +32,7 @@ class TwitchListener:
   #setup socket object
   def __init__(self,channelname):
     self.irc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    self.channel_info = json.load(open('channeldata.json'))
+    self.channel_info = json.load(open('data/channeldata.json'))
     self.channel = self.channel_info[channelname]
     self.blocked = self.channel['blocked']
 
@@ -44,6 +44,7 @@ class TwitchListener:
   def connect(self):
     
     print("Connecting to: {}#{}".format(settings['domain'],self.channel['name']))
+    print("There are {} viewers in this channel currently.".format(self.getCurrentViewers()))
     
     #attempt connection
     try:
@@ -106,10 +107,7 @@ class TwitchListener:
                   
 
 
-if __name__ == "__main__":
-  a = get("https://api.betterttv.net/emotes").json()['emotes']
-  for line in a:
-    print(line['regex'])
+
 
 
 

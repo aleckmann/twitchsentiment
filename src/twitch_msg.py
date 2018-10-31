@@ -1,7 +1,6 @@
 #!/usr/bin/python
 import collections
 import json
-import data
 import time
 
 class TwitchMsg:
@@ -59,7 +58,7 @@ class TwitchMsg:
     for token in self.msg.split():
     
       #word is not an emoji	
-      if token not in data.emojis:
+      if token not in self.emojis:
         wholemsg.append(token)
         plaintextmsg.append(token)
       

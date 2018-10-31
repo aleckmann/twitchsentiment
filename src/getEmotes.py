@@ -1,7 +1,7 @@
 from requests import get
 
 if __name__ == "__main__":
-  f = open('emojidata.txt','w')
+  f = open('../data/emojidata.txt','w')
 
   #get bttv emotes
   a = get("https://api.betterttv.net/emotes").json()['emotes']

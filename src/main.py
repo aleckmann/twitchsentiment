@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import twitch_listener as Listener
 import json
-from appsettings import settings
+from data.appsettings import settings
 import argparse
 import requests
 import datetime
@@ -13,12 +13,12 @@ DEFAULT_BLOCK_LIST = []
 
 def updateChannelData(chanName):
   #load data into memory for referencing values
-  data = json.load(open('channeldata.json'))
+  data = json.load(open('data/channeldata.json'))
 
   #if no saved data
   if chanName not in data:
     #open with intention to append and erase the last few EOL characters that satisfy json formatting rules
-    datafile = open('channeldata.json','a+')
+    datafile = open('data/channeldata.json','a+')
     datafile.truncate((datafile.seek(0,2)-3))
 
     #write the initial formatting string and then append a block representing the channel data
@@ -53,7 +53,7 @@ def chooseChannel(args):
     chanName = chooseChannel(ans)
 
   #save the data if provided in arg
-  if SAVE_API_DATA: json.dump(apiData, open('api_data_{}_{}.json'.format(chanName,datetime.datetime.now().date()), 'w+'), indent=2, separators=(',',': '))
+  if SAVE_API_DATA: json.dump(apiData, open('data/api_data_{}_{}.json'.format(chanName,datetime.datetime.now().date()), 'w+'), indent=2, separators=(',',': '))
 
   if updateChannelData(chanName): print("Updated channel data")
 
