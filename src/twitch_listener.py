@@ -90,6 +90,7 @@ class TwitchListener:
   def getChannelEmojis(self):
     emojiFile = open('data/emojidata.txt','r')
 
+    ## PHASE ONE - IMPORT EMOJIS FROM PULLED FILE
     reachedSubEmotes = False
 
     for line in emojiFile:
@@ -114,11 +115,25 @@ class TwitchListener:
         break
     
     emojiFile.close()
-      
 
+    ## PHASE 2 - PULL CHANNEL SPECIFIC EMOJI DATA FROM FRANKERFACEZ
+    #bless open APIs holy shit
+
+    channelSpecificEmojiSet = get('https://api.frankerfacez.com/v1/room/{}'.format(self.channel)).json()
+    setID = channelSpecificEmojiSet["room"]["set"]
+
+    #TODOOOO
+
+    #for emojiInfoBlocks in channelSpecificEmojiSet['sets'][setID]['emoticons']:
+      #tmp.txt contains an example json pull
+      #iterate through the json pull and add the names of the channels emoji sets to self.channel_emojis
+    
+      
   def run(self):
+    #connect to the channel
     self.connect()
 
+    #fetch generic twitch emojis as well as channel sub emotes
     self.getChannelEmojis()
 
     while True:
@@ -130,6 +145,10 @@ class TwitchListener:
 
       #u can pass
       if message and message.isIncluded:
+
+        #do emoji processing shit here
+        message.refactor(self.channel_emojis)
+
         #pray to jeebus that there aren't any unreadable things in the message (figure out how to fix this damn you)
         try:
     
@@ -141,6 +160,7 @@ class TwitchListener:
           ##################
 
           print("{} -- {}: {}".format(message.timestamp, message.user, message.msg))
+          print(message.emojis)
 
         #na boo
         except UnicodeDecodeError:

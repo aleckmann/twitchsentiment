@@ -31,9 +31,6 @@ class TwitchMsg:
     #early rudimentary classification of message to determine whether or not pre/processing steps should be taken
     self.flag()
 
-    #preprocess
-    self.refactor()
-
   def flag(self):
     #is a command to another bot
     if self.msg[0] == '!':
@@ -49,7 +46,7 @@ class TwitchMsg:
     return
 
   #prepares the message for processing
-  def refactor(self):
+  def refactor(self, emojisToConsider):
   ##turn message into 2 parts, emoji dict and raw text data
     wholemsg = []
     plaintextmsg = []
@@ -58,7 +55,7 @@ class TwitchMsg:
     for token in self.msg.split():
     
       #word is not an emoji	
-      if token not in self.emojis:
+      if token not in emojisToConsider:
         wholemsg.append(token)
         plaintextmsg.append(token)
       
