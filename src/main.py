@@ -9,7 +9,7 @@ import datetime
 SAVE_API_DATA = False
 CLIENT_ID = settings["clientid"]
 DEFAULT_CONNECT = 'imaqtpie'
-DEFAULT_BLOCK_LIST = []
+DEFAULT_BLOCK_LIST = ['nightbot','stayhydratedbot']
 
 def updateChannelData(chanName):
   #load data into memory for referencing values

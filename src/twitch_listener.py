@@ -36,15 +36,25 @@ class TwitchListener:
     self.channel = self.channel_info[channelname]
     self.blocked = self.channel['blocked']
 
-  def getCurrentViewers(self):
-    return get('https://api.twitch.tv/kraken/streams/%s' % self.channel['name'],headers={"Client-ID":settings['clientid']}).json()['stream']['viewers']
+    self.twitchChannelID = "0"
+    self.channel_emojis = []
+    self.currentViewers = 0
+
+  #pings api to get current number of viewers, live updates.
+  def getApiInfo(self):
+    apidata = get('https://api.twitch.tv/kraken/streams/%s' % self.channel['name'],headers={"Client-ID":settings['clientid']}).json()
+
+    self.twitchChannelID = str(apidata['stream']['channel']['_id'])
+    self.currentViewers = apidata['stream']['viewers']
 
   #connects to a specified channel on the specified server using the pass/nick combo
   #info is contained in settings file
   def connect(self):
     
+    self.getApiInfo()
+
     print("Connecting to: {}#{}".format(settings['domain'],self.channel['name']))
-    print("There are {} viewers in this channel currently.".format(self.getCurrentViewers()))
+    print("There are {} viewers in this channel currently.".format(self.currentViewers))
     
     #attempt connection
     try:
@@ -77,8 +87,39 @@ class TwitchListener:
     if shouldProcessMessage(username, msg, self.blocked, settings['nick']):
       return TwitchMsg.TwitchMsg(username, msg)
 
+  def getChannelEmojis(self):
+    emojiFile = open('data/emojidata.txt','r')
+
+    reachedSubEmotes = False
+
+    for line in emojiFile:
+
+      #if the line isn't a channel specific ID or it contains the generic twitchpresents channel ID, include the emojis to those to reference
+      if not line.__contains__(':::'):
+        self.channel_emojis.append(line.strip())
+        
+      if line.startswith('149747285'):
+        self.channel_emojis.append(line[line.rfind(':::')+3:].strip())
+
+      #if the line contains the ID of the channel we're looking for, make a note that we've reached where we want to be and skip the final check
+      if line.startswith(self.twitchChannelID + ":::"):
+        if not reachedSubEmotes: 
+          reachedSubEmotes = True
+        self.channel_emojis.append(line[line.rfind(':::')+3:].strip())
+        continue
+
+      #if we are here it means that we passed the twitchpresents section and are not looking at our currently connected channel
+      #in this case, if we have reached the channel we need to already, it means that we don't need to be looking anymore
+      if reachedSubEmotes:
+        break
+    
+    emojiFile.close()
+      
+
   def run(self):
     self.connect()
+
+    self.getChannelEmojis()
 
     while True:
       # get username/msg for blocked user checking
