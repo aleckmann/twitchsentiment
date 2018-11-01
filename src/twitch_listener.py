@@ -119,14 +119,12 @@ class TwitchListener:
     ## PHASE 2 - PULL CHANNEL SPECIFIC EMOJI DATA FROM FRANKERFACEZ
     #bless open APIs holy shit
 
-    channelSpecificEmojiSet = get('https://api.frankerfacez.com/v1/room/{}'.format(self.channel)).json()
-    setID = channelSpecificEmojiSet["room"]["set"]
+    channelSpecificEmojiSet = get('https://api.frankerfacez.com/v1/room/{}'.format(self.channel['name'])).json()
+    setID = str(channelSpecificEmojiSet['room']["set"])
 
-    #TODOOOO
-
-    #for emojiInfoBlocks in channelSpecificEmojiSet['sets'][setID]['emoticons']:
-      #tmp.txt contains an example json pull
+    for emojiInfoBlocks in channelSpecificEmojiSet['sets'][setID]['emoticons']:
       #iterate through the json pull and add the names of the channels emoji sets to self.channel_emojis
+      self.channel_emojis.append(emojiInfoBlocks['name']))
     
       
   def run(self):
@@ -165,7 +163,6 @@ class TwitchListener:
         #na boo
         except UnicodeDecodeError:
           print("Message contained shit we can't read")
-                  
 
 
 
