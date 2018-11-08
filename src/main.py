@@ -1,13 +1,13 @@
 #!/usr/bin/python
 import twitch_listener as Listener
 import json
-from data.appsettings import settings
 import argparse
 import requests
 import datetime
+from pymongo import MongoClient
 
+CLIENT = MongoClient('localhost',27017)
 SAVE_API_DATA = False
-CLIENT_ID = settings["clientid"]
 DEFAULT_CONNECT = 'imaqtpie'
 DEFAULT_BLOCK_LIST = ['nightbot','stayhydratedbot']
 
@@ -43,7 +43,7 @@ def chooseChannel(args):
   chanName = DEFAULT_CONNECT if args == None else args
 
   #query twitch for channel info
-  apiData = requests.get('https://api.twitch.tv/kraken/streams/%s' % chanName,headers={"Client-ID":CLIENT_ID}).json()
+  apiData = requests.get('https://api.twitch.tv/kraken/streams/%s' % chanName,headers={"Client-ID":CLIENT.settings.api_info.find_one()['Client-ID']}).json()
 
   #if the channel is currently offline, prompt for a new channel and recursively attempt that one
   if not apiData['stream']:

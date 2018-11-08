@@ -1,5 +1,4 @@
 #!/usr/bin/python
-from data.appsettings import settings
 import twitch_msg as TwitchMsg
 import socket
 import sys
@@ -7,6 +6,10 @@ import datetime
 import collections
 import json
 from requests import get
+from pymongo import MongoClient
+import dbdriver
+
+CLIENT = MongoClient('localhost',27017)
 
 #filters a message returning a use code to be read by the processing loop
 # 0 = do not process
@@ -40,9 +43,15 @@ class TwitchListener:
     self.channel_emojis = []
     self.currentViewers = 0
 
+    self.name = CLIENT.settings.irc_info.find()[0]['name']
+    self.domain = CLIENT.settings.irc_info.find()[1]['domain']
+    self.nick = CLIENT.settings.irc_info.find()[2]['nick']
+    self.port = int(CLIENT.settings.irc_info.find()[3]['port'])
+    self.oauthpw = CLIENT.settings.irc_info.find()[4]['oauthpw']
+
   #pings api to get current number of viewers, live updates.
   def getApiInfo(self):
-    apidata = get('https://api.twitch.tv/kraken/streams/%s' % self.channel['name'],headers={"Client-ID":settings['clientid']}).json()
+    apidata = get('https://api.twitch.tv/kraken/streams/%s' % self.channel['name'],headers={"Client-ID":CLIENT.settings.api_info.find_one()['Client-ID']}).json()
 
     self.twitchChannelID = str(apidata['stream']['channel']['_id'])
     self.currentViewers = apidata['stream']['viewers']
@@ -53,15 +62,15 @@ class TwitchListener:
     
     self.getApiInfo()
 
-    print("Connecting to: {}#{}".format(settings['domain'],self.channel['name']))
+    print("Connecting to: {}#{}".format(self.domain,self.channel['name']))
     print("There are {} viewers in this channel currently.".format(self.currentViewers))
     
     #attempt connection
     try:
-      self.irc.connect((settings['domain'], settings['port']))
-      self.irc.send(("USER {0} {0} {0}\n".format(settings['nick'])).encode('utf-8'))
-      self.irc.send(("PASS {}\n".format(settings['oauthpw'])).encode('utf-8'))
-      self.irc.send(("NICK {}\n".format(settings['nick'])).encode('utf-8'))              
+      self.irc.connect((self.domain, self.port))
+      self.irc.send(("USER {0} {0} {0}\n".format(self.nick)).encode('utf-8'))
+      self.irc.send(("PASS {}\n".format(self.oauthpw)).encode('utf-8'))
+      self.irc.send(("NICK {}\n".format(self.nick)).encode('utf-8'))              
       self.irc.send(("JOIN #{}\n".format(self.channel['name'])).encode('utf-8'))
       print("Connection successful!")
     
@@ -84,9 +93,11 @@ class TwitchListener:
     username = text[1:text.find(b'!')].decode('utf-8')
     msg = text[text.rfind(b'#' + bytes(self.channel['name'].encode('utf-8'))) + len(self.channel['name']) + 3 : -1].decode('utf-8')
     
-    if shouldProcessMessage(username, msg, self.blocked, settings['nick']):
+    if shouldProcessMessage(username, msg, self.blocked, self.nick):
       return TwitchMsg.TwitchMsg(username, msg)
 
+
+## MAKE ME MONGO
   def getChannelEmojis(self):
     emojiFile = open('data/emojidata.txt','r')
 
@@ -124,15 +135,12 @@ class TwitchListener:
 
     for emojiInfoBlocks in channelSpecificEmojiSet['sets'][setID]['emoticons']:
       #iterate through the json pull and add the names of the channels emoji sets to self.channel_emojis
-      self.channel_emojis.append(emojiInfoBlocks['name']))
+      self.channel_emojis.append(emojiInfoBlocks['name'])
     
       
   def run(self):
     #connect to the channel
     self.connect()
-
-    #fetch generic twitch emojis as well as channel sub emotes
-    self.getChannelEmojis()
 
     while True:
       # get username/msg for blocked user checking
@@ -158,7 +166,6 @@ class TwitchListener:
           ##################
 
           print("{} -- {}: {}".format(message.timestamp, message.user, message.msg))
-          print(message.emojis)
 
         #na boo
         except UnicodeDecodeError:
